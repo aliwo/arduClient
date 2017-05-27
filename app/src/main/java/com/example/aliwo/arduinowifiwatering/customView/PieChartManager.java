@@ -5,6 +5,8 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.example.aliwo.arduinowifiwatering.R;
 import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -24,7 +26,7 @@ interface ChartSubject
 
 }
 
-public class PieChartManager extends AppCompatActivity
+public class PieChartManager extends AppCompatActivity implements ChartSubject
 {
     Context mcontext;
 
@@ -33,7 +35,7 @@ public class PieChartManager extends AppCompatActivity
         mcontext = context;
     }
 
-    public void setWaterPieChart(PieChart pieChart, float x, int subject)
+    public void setPieChart(PieChart pieChart, float x, int subject)
     {
 
         //데이터 넣기
@@ -41,50 +43,75 @@ public class PieChartManager extends AppCompatActivity
         switch(subject)
         {
             case 1:
-                entries.add(new PieEntry(x, "습도 "+Float.toString(x)+"%"));
+                PieEntry entry = new PieEntry(x);
+                entry.setLabel("white");
+                entries.add(new PieEntry(x));
                 break;
 
             case 2:
-                entries.add(new PieEntry(x, "온도 "+Float.toString(x)+"도"));
+                entries.add(new PieEntry(x));
                 break;
 
             case 3:
-                entries.add(new PieEntry(x, "수위 "+Float.toString(x)+"리터"));
+                entries.add(new PieEntry(x));
                 break;
         }
-        entries.add(new PieEntry(100-x, " "));
+        PieEntry rest = new PieEntry(100-x);
+        entries.add(rest); // 보이지 않는 부분의 값.
 
         //색깔 넣기. 색깔을 resource로 부터 추출, 그래프에 입힘
         int white =  mcontext.getResources().getColor(R.color.white);
         int water = mcontext.getResources().getColor(R.color.water);
-        int red = mcontext.getResources().getColor(R.color.RED);
+        int temperature = mcontext.getResources().getColor(R.color.temperature_chart_color);
         int green = mcontext.getResources().getColor(R.color.Green);
-        PieDataSet set;
+        int transparent = mcontext.getResources().getColor(R.color.transparent);
+
+
+        PieDataSet set = new PieDataSet(entries, " ");
+        set.setValueTextColor(transparent); // 파이차트 안에 들어있는 숫자를 안보이게 해요
+        PieData data = new PieData(set);
+        configureCommonPiechart(pieChart);
+        pieChart.setHoleColor(transparent);
+        pieChart.getLegend().setTextColor(white); // 왼쪽 아래 글자를 하얀색으로 바꿔요
+
         switch(subject)
         {
             case 1:
-                set = new PieDataSet(entries, "습도 정보");
-                set.setColors(water, white);
-                PieData data = new PieData(set);
-                pieChart.setData(data);
+                set.setLabel("습도"+x);
+                set.setColors(water, transparent); // 파이 차트 색깔을 바꿔요
                 break;
 
             case 2:
-                set = new PieDataSet(entries, "온도 정보");
-                set.setColors(red, white);
-                PieData data2 = new PieData(set);
-                pieChart.setData(data2);
+                set.setLabel("온도"+x);
+                set.setColors(temperature, transparent);
                 break;
 
             case 3:
-                set = new PieDataSet(entries, "수위");
+                set.setLabel("온도"+x);
                 set.setColors(green, white);
-                PieData data3 = new PieData(set);
-                pieChart.setData(data3);
                 break;
         }
-
+        pieChart.setData(data);
         pieChart.invalidate();
+    }
+
+    public void  animatePieCharts(PieChart[] pieCharts)
+    {
+        for(int i=0; i<pieCharts.length; i++)
+        {
+            pieCharts[i].animateY(1000);
+        }
+
+    }
+
+    private void configureCommonPiechart(PieChart pieChart)
+    {
+        Description desc = new Description();
+        desc.setText(""); // description label 을 날려버립니다.
+        pieChart.setDescription(desc);
+        pieChart.getLegend().setTextSize(18f);
+        pieChart.getLegend().setPosition(Legend.LegendPosition.BELOW_CHART_CENTER);
+        pieChart.getLegend().setYEntrySpace(3f);
     }
 
 }

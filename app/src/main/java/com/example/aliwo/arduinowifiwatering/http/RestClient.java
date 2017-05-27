@@ -34,7 +34,7 @@ import cz.msebera.android.httpclient.protocol.HttpContext;
 public class RestClient
 {
     private static Context context;
-    public static final String BASE_URL = "http://10.1.1.181:5000"; //서버 주소와 포트를 입력하세요
+    public static String BASE_URL = "http://10.1.1.253:5000"; //서버 주소와 포트를 입력하세요
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     public RestClient(Context context)

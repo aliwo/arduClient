@@ -7,4 +7,6 @@
     <color name="water">#0000FF</color>
     <color name="RED">#FF0000</color>
     <color name="Green">#00FF00</color>
+    <color name="transparent">#00000000</color>
+    <color name="temperature_chart_color">#00d2ff</color>
 </resources>
