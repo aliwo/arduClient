@@ -9,4 +9,7 @@
     <color name="Green">#00FF00</color>
     <color name="transparent">#00000000</color>
     <color name="temperature_chart_color">#00d2ff</color>
+    <color name="black">#000000</color>
+    <color name="leapGreen">#009500</color>
+
 </resources>

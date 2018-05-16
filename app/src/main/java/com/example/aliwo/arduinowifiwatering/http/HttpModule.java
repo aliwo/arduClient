@@ -8,9 +8,12 @@ import android.widget.Toast;
 
 import com.example.aliwo.arduinowifiwatering.MainActivity;
 import com.example.aliwo.arduinowifiwatering.R;
+import com.example.aliwo.arduinowifiwatering.customView.BarChartManager;
 import com.example.aliwo.arduinowifiwatering.customView.PieChartManager;
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.json.JSONArray;
@@ -25,61 +28,72 @@ import cz.msebera.android.httpclient.Header;
 
 public class HttpModule
 {
-    RestClient client;
-    Context mContext;
-    StatusHttpHandler statusHandler;
-    waterHttpHandler waterHandler;
-    LedHttpHandler ledHttpHandler;
-    FlushHttpHandler flushHttpHandler;
-    public static String arduino_id = "00000000";
+    private RestClient client;
+    private Context mContext;
+    private StatusHttpHandler statusHandler;
+    private waterHttpHandler waterHandler;
+    private LedHttpHandler ledHttpHandler;
+    private FlushHttpHandler flushHttpHandler;
+    private GoogleHandler googleHandler;
+    private static String arduino_id = "00000000";
+    private RequestParams params;
 
     public HttpModule(RestClient client, Context context)
     {
         this.client = client;
         mContext = context;
-        waterHandler= new waterHttpHandler(context);
+        waterHandler = new waterHttpHandler(context);
         statusHandler = new StatusHttpHandler(context);
         ledHttpHandler = new LedHttpHandler(context);
         flushHttpHandler = new FlushHttpHandler(context);
+        googleHandler = new GoogleHandler();
     }
 
     public void water()
     {
+        params = new RequestParams();
+        params.add("instruction", "water");
+        this.client.post("/mobile_order/"+arduino_id, params, waterHandler);
         // 비동기 방식이기 때문에, water() 메소드가 리턴하는 값은 의미가 없음. 통신에 의한 결과는
         // 오직 onSuccess 에 의해서만 단독으로 처리해야 함.
-        this.client.get("/water/"+arduino_id, null, waterHandler); // 이게 되나?
     }
-
-    public StatusHttpHandler getStatus()
+    public void getStatus()
     {
-        this.client.get("/status_get", null, statusHandler);
-        return statusHandler;
+        params = new RequestParams();
+        params.add("instruction", "status");
+        this.client.post("/mobile_order/"+arduino_id, params, statusHandler);
     }
-
     public void ledOn()
     {
-        this.client.get("/led_on/"+arduino_id, null, ledHttpHandler);
+        params = new RequestParams();
+        params.add("instruction", "led_on");
+        this.client.post("/mobile_order/"+arduino_id, params, ledHttpHandler);
     }
     public  void ledOff()
     {
-        this.client.get("/led_off/"+arduino_id, null, ledHttpHandler);
+        params = new RequestParams();
+        params.add("instruction", "led_off");
+        this.client.post("/mobile_order/"+arduino_id, params, ledHttpHandler);
     }
-    public  void flush() { this.client.get("/flush/"+arduino_id, null, flushHttpHandler); }
+    public  void flush()
+    {
+        params = new RequestParams();
+        params.add("instruction", "flush");
+        this.client.post("/mobile_order/"+arduino_id, params, flushHttpHandler);
+    }
+
+    public void google()
+    {
+        this.client.get("/", null, googleHandler);
+    }
 }
 
 class waterHttpHandler extends TextHttpResponseHandler
 {
     Context mContext;
-
     public waterHttpHandler(Context context)
     {
         mContext = context;
-    }
-
-    @Override
-    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable)
-    {
-        Toast.makeText(mContext, "통신 실패", Toast.LENGTH_LONG).show();
     }
 
     @Override
@@ -87,13 +101,12 @@ class waterHttpHandler extends TextHttpResponseHandler
     {
         Log.d("HttpModule", "onSuccess 호출");
         Log.d("WatterHttpHandler.", responseString);
-//        if(responseString.contains("done"))
-//        {
-//            Toast.makeText(mContext, "물을 줬어요", Toast.LENGTH_LONG).show();
-//            Log.d("HttpModule", responseString);
-//        }
     }
-
+    @Override
+    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable)
+    {
+        Toast.makeText(mContext, "통신 실패", Toast.LENGTH_LONG).show();
+    }
 }
 
 class StatusHttpHandler extends JsonHttpResponseHandler
@@ -102,13 +115,13 @@ class StatusHttpHandler extends JsonHttpResponseHandler
     private int temperature;
     private int humidity;
     PieChart moistChart;
-    PieChart temperatureChart;
+    BarChart temperatureChart;
 
     public StatusHttpHandler(Context context)
     {
         mContext = context;
         moistChart = (PieChart) ((Activity)mContext).getWindow().getDecorView().findViewById(R.id.moistchart);
-        temperatureChart = (PieChart) ((Activity)mContext).getWindow().getDecorView().findViewById(R.id.temperatureChart);
+        temperatureChart = (BarChart) ((Activity)mContext).getWindow().getDecorView().findViewById(R.id.temperatureChart);
     }
 
     @Override
@@ -122,9 +135,10 @@ class StatusHttpHandler extends JsonHttpResponseHandler
             humidity = response.getInt("humidity");
 
             final PieChartManager chartManager = new PieChartManager(mContext);
-            chartManager.setPieChart(temperatureChart, (float) temperature, PieChartManager.temperatureChart); // 온도 표시 차트 생성
+            final BarChartManager barChartManager = new BarChartManager(mContext);
+            barChartManager.setBarChart(temperatureChart, (float) temperature); // 온도 표시 차트 생성
             chartManager.setPieChart(moistChart, (float) humidity, PieChartManager.waterChart); // 습도 표시 차트 생성
-            chartManager.animatePieCharts(new PieChart[]{moistChart, temperatureChart});
+            chartManager.animatePieCharts(new PieChart[]{moistChart});
 
         }catch (JSONException e)
         {
@@ -155,9 +169,9 @@ class StatusHttpHandler extends JsonHttpResponseHandler
         Toast.makeText(mContext, "서버 점검중입니다.", Toast.LENGTH_LONG).show();
 
         final PieChartManager chartManager = new PieChartManager(mContext);
-        chartManager.setPieChart(temperatureChart, (float) 28, PieChartManager.temperatureChart); // 실패시 기본값
+        //chartManager.setPieChart(temperatureChart, (float) 28, PieChartManager.temperatureChart); // 실패시 기본값
         chartManager.setPieChart(moistChart, (float) 45, PieChartManager.waterChart); // 통신 실패시 기본값 설정
-        chartManager.animatePieCharts(new PieChart[]{moistChart, temperatureChart});
+        chartManager.animatePieCharts(new PieChart[]{moistChart});
 
     }
 
@@ -181,7 +195,7 @@ class LedHttpHandler extends TextHttpResponseHandler
     public LedHttpHandler(Context context)
     {
         this.mContext = context;
-        led_button = (Button) ((Activity)mContext).getWindow().getDecorView().findViewById(R.id.LED_BUTTON);
+        led_button = (Button) ((Activity)mContext).getWindow().getDecorView().findViewById(R.id.led);
     }
 
     @Override
@@ -194,7 +208,7 @@ class LedHttpHandler extends TextHttpResponseHandler
     public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable)
     {
         Log.d("led", "led 통신 실패");
-        led_button.setText("led 사용불가");
+        if(led_button != null) led_button.setText("led 사용불가");
     }
 
 }
@@ -218,5 +232,20 @@ class FlushHttpHandler extends TextHttpResponseHandler
     public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable)
     {
         Log.d("flush", "flush 통신 실패");
+    }
+}
+
+class GoogleHandler extends TextHttpResponseHandler
+{
+    @Override
+    public void onSuccess(int statusCode, Header[] headers, String responseString)
+    {
+        Log.d("GoogleHandler", responseString);
+    }
+
+    @Override
+    public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable)
+    {
+
     }
 }

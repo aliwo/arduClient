@@ -34,21 +34,24 @@ import cz.msebera.android.httpclient.protocol.HttpContext;
 public class RestClient
 {
     private static Context context;
-    public static String BASE_URL = "http://10.1.1.253:5000"; //서버 주소와 포트를 입력하세요
+    public static String BASE_URL = "http://google.com"; //서버 주소와 포트를 입력하세요
     private static AsyncHttpClient client = new AsyncHttpClient();
 
     public RestClient(Context context)
     {
-        if(this.context == null) {this.context = context;}
+        if(this.context == null)
+        {
+            this.context = context;
+        }
     }
-    public static void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler)
+    public void get(String url, RequestParams params, AsyncHttpResponseHandler responseHandler)
     {
         client.get(getAbsoluteUrl(url), params, responseHandler);
         PersistentCookieStore CookieStore = new PersistentCookieStore(context);
         client.setCookieStore(CookieStore);
     }
 
-    public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler)
+    public void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler)
     {
         client.post(getAbsoluteUrl(url), params, responseHandler);
     }

@@ -23,23 +23,6 @@
             android:layout_marginTop="80dp"
             >
 
-            <com.github.mikephil.charting.charts.PieChart
-                android:id="@+id/moistchart"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                >
-            </com.github.mikephil.charting.charts.PieChart>
-
-            <com.github.mikephil.charting.charts.PieChart
-                android:layout_toRightOf="@+id/moistchart"
-                android:id="@+id/temperatureChart"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                >
-            </com.github.mikephil.charting.charts.PieChart>
-
         </LinearLayout>
 
 

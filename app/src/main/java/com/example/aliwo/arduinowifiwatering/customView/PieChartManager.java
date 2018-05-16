@@ -65,6 +65,8 @@ public class PieChartManager extends AppCompatActivity implements ChartSubject
         int temperature = mcontext.getResources().getColor(R.color.temperature_chart_color);
         int green = mcontext.getResources().getColor(R.color.Green);
         int transparent = mcontext.getResources().getColor(R.color.transparent);
+        int black = mcontext.getResources().getColor(R.color.black);
+        int leapGreen = mcontext.getResources().getColor(R.color.leapGreen);
 
 
         PieDataSet set = new PieDataSet(entries, " ");
@@ -72,18 +74,18 @@ public class PieChartManager extends AppCompatActivity implements ChartSubject
         PieData data = new PieData(set);
         configureCommonPiechart(pieChart);
         pieChart.setHoleColor(transparent);
-        pieChart.getLegend().setTextColor(white); // 왼쪽 아래 글자를 하얀색으로 바꿔요
+        pieChart.getLegend().setTextColor(black); // 왼쪽 아래 글자를 검은색으로 바꿔요
 
         switch(subject)
         {
             case 1:
                 set.setLabel("습도"+x);
-                set.setColors(water, transparent); // 파이 차트 색깔을 바꿔요
+                set.setColors(leapGreen, white); // 파이 차트 색깔을 바꿔요
                 break;
 
             case 2:
                 set.setLabel("온도"+x);
-                set.setColors(temperature, transparent);
+                set.setColors(leapGreen, white);
                 break;
 
             case 3:

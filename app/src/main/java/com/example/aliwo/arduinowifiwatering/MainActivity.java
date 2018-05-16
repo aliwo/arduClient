@@ -19,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -36,9 +37,10 @@ import me.leolin.shortcutbadger.ShortcutBadger;
 
 public class MainActivity extends AppCompatActivity
 {
-    private Button button;
-    private Button led_button;
-    private Button set_up_button;
+    private ImageButton water_button;
+    private ImageButton led_button;
+    private ImageButton set_up_button;
+    private ImageButton google_button;
     private RestClient client;
     private HttpModule module;
     //private LinearLayout chartLayout;
@@ -53,8 +55,6 @@ public class MainActivity extends AppCompatActivity
     private EditText dev_input;
     private LinearLayout layout;
     private AlertDialog.Builder bld;
-    private ListView lvNavlist;
-    private String[] navItems = {" ", "MK_1", "MK_2"};
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.control);
         findMyFriends();
         initShakeDetector();
         module.getStatus(); // 그래프 그려버리기~
@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
 
     void findMyFriends() // findViewByid 혹은 클래스 멤버 초기화 등을 담당합니다.
     {
-        button = (Button) findViewById(R.id.button);
+        water_button = (ImageButton) findViewById(R.id.water);
         //moistChart = (PieChart) findViewById(R.id.moistchart);
         //temperatureChart = (PieChart) findViewById(R.id.temperatureChart);
         client = new RestClient(MainActivity.this);
@@ -100,16 +100,11 @@ public class MainActivity extends AppCompatActivity
         //chartManager = new PieChartManager(MainActivity.this);
         //sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         //chartLayout = (LinearLayout) findViewById(R.id.chartLayout);
-        led_button = (Button) findViewById(R.id.LED_BUTTON);
-        set_up_button = (Button) findViewById(R.id.set_up_button);
-        lvNavlist = (ListView)findViewById(R.id.lv_activity_main_nav_list);
-
-        lvNavlist.setAdapter(
-                new ArrayAdapter<String>(this, R.layout.list_white_text, R.id.list_content, navItems));
-        lvNavlist.setOnItemClickListener(new DrawerItemClickListener(this));
+        led_button = (ImageButton) findViewById(R.id.led);
+        set_up_button = (ImageButton) findViewById(R.id.recycle);
 
         setDialog(); // setup 다이얼로그를 초기화 합니다.
-        button.setOnClickListener(new View.OnClickListener()
+        water_button.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
@@ -119,23 +114,18 @@ public class MainActivity extends AppCompatActivity
         });
         led_button.setOnClickListener(new View.OnClickListener() {
             boolean led_flag = false;
-            Button self;
             @Override
             public void onClick(View v)
             {
-                self = (Button)v;
-
                 if(led_flag == false)
                 {
                     module.ledOn();
-                    self.setText("led = on");
                     led_flag = true;
                 }
                 else if(led_flag == true)
                 {
                     module.ledOff();
                     led_flag = false;
-                    self.setText("led = off");
                 }
             }
         });
@@ -153,6 +143,15 @@ public class MainActivity extends AppCompatActivity
                     bld.show(); // 다이얼 로그를 보여줍니다.
                 } catch (IllegalStateException e)
                 { e.printStackTrace(); }
+            }
+        });
+
+        google_button = (ImageButton) findViewById(R.id.perfume);
+        google_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                module.google();
+                Log.d("googleButton", "clicked");
             }
         });
     }
@@ -209,36 +208,3 @@ public class MainActivity extends AppCompatActivity
 
 }
 
-
-
-class DrawerItemClickListener implements ListView.OnItemClickListener
-{
-    Context mContext;
-    public DrawerItemClickListener(Context context)
-    {
-        mContext = context;
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapter, View view, int position,
-                            long id)
-    {
-        switch (position)
-        {
-            case 0:
-                Toast.makeText(mContext,"0번 버튼", Toast.LENGTH_LONG).show();
-                break;
-            case 1:
-                Toast.makeText(mContext,"1번 버튼", Toast.LENGTH_LONG).show();
-                break;
-            case 2:
-                Toast.makeText(mContext,"2번 버튼", Toast.LENGTH_LONG).show();
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-
-        }
-    }
-}
